@@ -1,20 +1,20 @@
 // lib/pages/profile_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:Mate/services/api_service.dart';
+import 'package:Mate/auth_state.dart';
 
 class ProfilePage extends StatefulWidget {
-  final String token; // JWT from login
-
-  const ProfilePage({Key? key, required this.token}) : super(key: key);
+  const ProfilePage({Key? key}) : super(key: key);
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String _email = '';
+  bool _isLoading = false;
   String _statusMessage = '';
-  bool _isLoading = true;
+  String _email = '';
 
   @override
   void initState() {
@@ -28,15 +28,25 @@ class _ProfilePageState extends State<ProfilePage> {
       _statusMessage = '';
     });
 
+    final token = AuthState.token;
+    if (token == null) {
+      setState(() {
+        _statusMessage = 'No token found. Please log in.';
+        _isLoading = false;
+      });
+      return;
+    }
+
     try {
-      final result = await ApiService.getProfile(widget.token);
+      final result = await ApiService.getProfile(token);
       if (result['success'] == true) {
         final data = result['data'];
         setState(() {
           _email = data['email'] ?? '';
-          _statusMessage = result['message'] ?? '';
+          _statusMessage = result['message'] ?? 'Profile fetched successfully';
         });
       } else {
+        // e.g., "Invalid token"
         setState(() {
           _statusMessage = result['message'] ?? 'Failed to fetch profile';
         });
@@ -46,6 +56,7 @@ class _ProfilePageState extends State<ProfilePage> {
         _statusMessage = 'Error: $e';
       });
     } finally {
+      // 'finally' must be directly after the catch block
       setState(() {
         _isLoading = false;
       });
@@ -54,6 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    // This is the required build method for State<ProfilePage>.
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mate - Profile'),
@@ -69,7 +81,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     Text(
                       _statusMessage,
                       style: TextStyle(
-                        color: _statusMessage.contains('successfully')
+                        color: _statusMessage.contains('success')
                             ? Colors.green
                             : Colors.red,
                       ),

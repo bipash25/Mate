@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Example: If your backend is on Render:
+  // If you're using Render:
   static const String baseUrl = 'https://mate-rl2h.onrender.com';
 
   // POST /auth/signup
@@ -15,8 +15,9 @@ class ApiService {
       body: jsonEncode({'email': email, 'password': password}),
     );
 
-    print('Status code: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    print('Status code (signup): ${response.statusCode}');
+    print('Response body (signup): ${response.body}');
+
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
@@ -29,26 +30,25 @@ class ApiService {
       body: jsonEncode({'email': email, 'password': password}),
     );
 
-    print('Status code: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    print('Status code (login): ${response.statusCode}');
+    print('Response body (login): ${response.body}');
+
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  // GET /auth/profile (protected)
-  // token is your JWT from login
+  // GET /auth/profile
   static Future<Map<String, dynamic>> getProfile(String token) async {
     final uri = Uri.parse('$baseUrl/auth/profile');
     final response = await http.get(
       uri,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $token', // Attach token
       },
     );
 
     print('Status code (profile): ${response.statusCode}');
     print('Response body (profile): ${response.body}');
-
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 }

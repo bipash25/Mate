@@ -2,12 +2,10 @@
 
 const express = require('express');
 const cors = require('cors');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
-// Import the verifyToken middleware
-const verifyToken = require('./verifyToken');
+const verifyToken = require('./verifyToken'); // Our JWT middleware
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,7 +27,7 @@ async function connectDB() {
         useUnifiedTopology: true
       });
       await dbClient.connect();
-      db = dbClient.db('mateDB'); // The name of your database
+      db = dbClient.db('mateDB');
       console.log('✅ Connected to MongoDB Atlas.');
     } catch (error) {
       console.error('❌ Error connecting to MongoDB:', error);
@@ -43,7 +41,6 @@ async function connectDB() {
 // AUTH ROUTES
 // ------------------------
 
-// POST /auth/signup
 app.post('/auth/signup', async (req, res) => {
   try {
     const database = await connectDB();
@@ -74,7 +71,7 @@ app.post('/auth/signup', async (req, res) => {
   }
 });
 
-// POST /auth/login
+// POST /auth/login -> generate JWT
 app.post('/auth/login', async (req, res) => {
   try {
     const database = await connectDB();
@@ -95,8 +92,10 @@ app.post('/auth/login', async (req, res) => {
       return res.json({ success: false, message: 'Invalid email or password' });
     }
 
-    // Generate JWT
+    // Generate JWT with user._id
     const token = jwt.sign({ userId: user._id }, SECRET_KEY, { expiresIn: '1d' });
+
+    // Return token to client
     res.json({ success: true, message: 'Login successful', token });
   } catch (error) {
     console.error('Error in /auth/login:', error);
@@ -104,21 +103,20 @@ app.post('/auth/login', async (req, res) => {
   }
 });
 
-// GET /auth/profile (protected)
+// GET /auth/profile - protected route
 app.get('/auth/profile', verifyToken, async (req, res) => {
   try {
     const database = await connectDB();
     const usersCollection = database.collection('users');
 
-    // We set req.userId in the verifyToken middleware
+    // req.userId is set by verifyToken
     const userId = req.userId;
-    const user = await usersCollection.findOne({ _id: new MongoClient.ObjectId(userId) });
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
 
     if (!user) {
       return res.json({ success: false, message: 'User not found' });
     }
 
-    // Return some user info (excluding password)
     res.json({
       success: true,
       message: 'Profile fetched successfully',
@@ -133,12 +131,11 @@ app.get('/auth/profile', verifyToken, async (req, res) => {
   }
 });
 
-// Example root route
+// Root test
 app.get('/', async (req, res) => {
   return res.send('Hello from Mate backend! Go to /auth/signup or /auth/login for auth.');
 });
 
-// Start server
 app.listen(PORT, async () => {
   console.log(`🚀 Mate backend running on port ${PORT}`);
   await connectDB();

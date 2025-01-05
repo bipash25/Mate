@@ -1,6 +1,7 @@
 // lib/pages/login_page.dart
 import 'package:flutter/material.dart';
 import 'package:Mate/services/api_service.dart';
+import 'package:Mate/auth_state.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -12,6 +13,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
   bool _isLoading = false;
   String _errorMessage = '';
 
@@ -27,6 +29,10 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final result = await ApiService.login(email, password);
       if (result['success'] == true) {
+        // We have a token
+        final token = result['token'];
+        // Store it
+        AuthState.token = token;
         // Navigate to Home
         Navigator.pushReplacementNamed(context, '/home');
       } else {

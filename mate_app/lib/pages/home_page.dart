@@ -1,6 +1,7 @@
 // lib/pages/home_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart';
+import 'package:Mate/auth_state.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -12,11 +13,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final ChessBoardController _controller = ChessBoardController();
 
-  // In a real app, you might retrieve the JWT from your global app state or
-  // from a secure storage. For demonstration, I'm just hard-coding
-  // or leaving it blank.
-  final String _dummyToken = 'YOUR_JWT_TOKEN_FROM_LOGIN';
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,13 +22,17 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.account_circle),
             onPressed: () {
-              // Navigate to profile
-              Navigator.pushNamed(context, '/profile', arguments: _dummyToken);
+              // Go to profile
+              // We'll push with named route, no need to pass the token since profile_page
+              // can read from AuthState
+              Navigator.pushNamed(context, '/profile');
             },
           ),
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () {
+              // Log out logic: Clear AuthState, go back to login
+              AuthState.token = null;
               Navigator.pushReplacementNamed(context, '/login');
             },
           )
@@ -49,8 +49,7 @@ class _HomePageState extends State<HomePage> {
             onMove: () {
               final allMoves = _controller.getSan();
               if (allMoves.isNotEmpty) {
-                final lastMove = allMoves.last;
-                print('Move made: $lastMove');
+                print('Move made: ${allMoves.last}');
               }
             },
           ),
