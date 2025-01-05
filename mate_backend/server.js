@@ -13,7 +13,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY || 'mysecret';
 const MONGODB_URI =
-  'mongodb+srv://bipro:<db_password>@mate.uzdsr.mongodb.net/?retryWrites=true&w=majority&appName=Mate';
+  'mongodb+srv://bipro:bipash@mate.uzdsr.mongodb.net/?retryWrites=true&w=majority&appName=Mate';
 
 app.use(express.json());
 app.use(cors());
