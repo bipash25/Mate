@@ -1,8 +1,9 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
-import 'package:Mate/pages/login_page.dart';
-import 'package:Mate/pages/signup_page.dart';
-import 'package:Mate/pages/home_page.dart';
+import 'pages/login_page.dart';
+import 'pages/signup_page.dart';
+import 'pages/home_page.dart';
+import 'pages/profile_page.dart'; // <--- add this import
 
 void main() {
   runApp(const MateApp());
@@ -23,6 +24,12 @@ class MateApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignupPage(),
         '/home': (context) => const HomePage(),
+        // For demonstration, we define a route that expects arguments
+        // We'll do: Navigator.pushNamed(context, '/profile', arguments: token)
+        '/profile': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as String;
+          return ProfilePage(token: args);
+        },
       },
     );
   }

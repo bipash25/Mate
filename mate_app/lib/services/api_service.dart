@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'https://80-idx-mate-1735957463668.cluster-a3grjzek65cxex762e4mwrzl46.cloudworkstations.dev/'; 
-  // For Android emulator; use 'http://localhost:3000' on iOS simulator or adjust as needed.
+  // Example: If your backend is on Render:
+  static const String baseUrl = 'https://mate-rl2h.onrender.com';
 
-  // POST /signup
+  // POST /auth/signup
   static Future<Map<String, dynamic>> signup(String email, String password) async {
     final uri = Uri.parse('$baseUrl/auth/signup');
     final response = await http.post(
@@ -17,12 +17,10 @@ class ApiService {
 
     print('Status code: ${response.statusCode}');
     print('Response body: ${response.body}');
-    print(response.headers);
-
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  // POST /login
+  // POST /auth/login
   static Future<Map<String, dynamic>> login(String email, String password) async {
     final uri = Uri.parse('$baseUrl/auth/login');
     final response = await http.post(
@@ -30,6 +28,27 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
+
+    print('Status code: ${response.statusCode}');
+    print('Response body: ${response.body}');
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  // GET /auth/profile (protected)
+  // token is your JWT from login
+  static Future<Map<String, dynamic>> getProfile(String token) async {
+    final uri = Uri.parse('$baseUrl/auth/profile');
+    final response = await http.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    print('Status code (profile): ${response.statusCode}');
+    print('Response body (profile): ${response.body}');
+
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 }

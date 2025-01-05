@@ -6,21 +6,21 @@ const { MongoClient } = require('mongodb');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-// -- CONFIG --
+// Import the verifyToken middleware
+const verifyToken = require('./verifyToken');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY || 'mysecret';
-const MONGODB_URI = 'mongodb+srv://bipro:bipash@mate.uzdsr.mongodb.net/?retryWrites=true&w=majority&appName=Mate';
+const MONGODB_URI =
+  'mongodb+srv://bipro:<db_password>@mate.uzdsr.mongodb.net/?retryWrites=true&w=majority&appName=Mate';
 
-// Middlewares
 app.use(express.json());
 app.use(cors());
 
-// Global variable to hold the db client
 let dbClient;
 let db;
 
-// Connect to MongoDB
 async function connectDB() {
   if (!dbClient) {
     try {
@@ -54,16 +54,13 @@ app.post('/auth/signup', async (req, res) => {
       return res.json({ success: false, message: 'Email and password required' });
     }
 
-    // Check if user exists
     const existingUser = await usersCollection.findOne({ email });
     if (existingUser) {
       return res.json({ success: false, message: 'User already exists' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert user
     await usersCollection.insertOne({
       email,
       password: hashedPassword,
@@ -93,7 +90,6 @@ app.post('/auth/login', async (req, res) => {
       return res.json({ success: false, message: 'Invalid email or password' });
     }
 
-    // Compare passwords
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
       return res.json({ success: false, message: 'Invalid email or password' });
@@ -108,15 +104,42 @@ app.post('/auth/login', async (req, res) => {
   }
 });
 
-// ------------------------
-// OTHER ROUTES (Example)
-// ------------------------
+// GET /auth/profile (protected)
+app.get('/auth/profile', verifyToken, async (req, res) => {
+  try {
+    const database = await connectDB();
+    const usersCollection = database.collection('users');
+
+    // We set req.userId in the verifyToken middleware
+    const userId = req.userId;
+    const user = await usersCollection.findOne({ _id: new MongoClient.ObjectId(userId) });
+
+    if (!user) {
+      return res.json({ success: false, message: 'User not found' });
+    }
+
+    // Return some user info (excluding password)
+    res.json({
+      success: true,
+      message: 'Profile fetched successfully',
+      data: {
+        email: user.email,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Error in /auth/profile:', error);
+    res.json({ success: false, message: 'Internal server error' });
+  }
+});
+
+// Example root route
 app.get('/', async (req, res) => {
   return res.send('Hello from Mate backend! Go to /auth/signup or /auth/login for auth.');
 });
 
 // Start server
-app.listen(PORT, '0.0.0.0', async () => {
-  console.log(`Mate backend running on port ${PORT}`);
+app.listen(PORT, async () => {
+  console.log(`🚀 Mate backend running on port ${PORT}`);
   await connectDB();
 });

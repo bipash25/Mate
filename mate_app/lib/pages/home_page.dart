@@ -12,12 +12,24 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final ChessBoardController _controller = ChessBoardController();
 
+  // In a real app, you might retrieve the JWT from your global app state or
+  // from a secure storage. For demonstration, I'm just hard-coding
+  // or leaving it blank.
+  final String _dummyToken = 'YOUR_JWT_TOKEN_FROM_LOGIN';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mate - Home'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle),
+            onPressed: () {
+              // Navigate to profile
+              Navigator.pushNamed(context, '/profile', arguments: _dummyToken);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () {
@@ -30,19 +42,15 @@ class _HomePageState extends State<HomePage> {
         child: SizedBox(
           width: MediaQuery.of(context).size.width * 0.9,
           child: ChessBoard(
-            controller: _controller,                // no longer "chessBoardController"
-            boardColor: BoardColor.brown,           // not "boardType"
-            boardOrientation: PlayerColor.white,    // flip if you want black at the bottom
+            controller: _controller,
+            boardColor: BoardColor.brown,
+            boardOrientation: PlayerColor.white,
             enableUserMoves: true,
-            // The new flutter_chess_board uses onMove as a simple VoidCallback
             onMove: () {
-              // Since onMove has no parameters, get the moves from the controller:
-              final allMoves = _controller.getSan(); // returns a list of moves in SAN
+              final allMoves = _controller.getSan();
               if (allMoves.isNotEmpty) {
-                final lastMove = allMoves.last;      // get the most recent move
+                final lastMove = allMoves.last;
                 print('Move made: $lastMove');
-              } else {
-                print('No moves yet');
               }
             },
           ),
